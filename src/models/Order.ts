@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IOrderItem {
   product: mongoose.Types.ObjectId;
@@ -21,12 +21,17 @@ export interface IShippingAddress {
 export interface IOrder extends Document {
   orderItems: IOrderItem[];
   shippingAddress: IShippingAddress;
-  paymentMethod: string;
+  paymentMethod: "cash_on_delivery" | "paypal";
+  paymentGateway?: "paypal";
+  paypalOrderId?: string;
+  paymentTransactionId?: string;
+  paymentStatus?: "Created" | "Pending" | "Completed" | "Failed" | "Cancelled";
   itemsPrice: number;
   shippingPrice: number;
   taxPrice: number;
   totalPrice: number;
-  user?: {
+  user: {
+    id?: string;
     name: string;
     email: string;
   };
@@ -34,7 +39,8 @@ export interface IOrder extends Document {
   paidAt?: Date;
   isDelivered: boolean;
   deliveredAt?: Date;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  stockRestored: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,12 +51,12 @@ const OrderSchema: Schema = new Schema(
       {
         product: {
           type: Schema.Types.ObjectId,
-          ref: 'Product',
+          ref: "Product",
           required: true,
         },
         name: { type: String, required: true },
         quantity: { type: Number, required: true, min: 1 },
-        price: { type: Number, required: true },
+        price: { type: Number, required: true, min: 0 },
         image: { type: String, required: true },
       },
     ],
@@ -65,56 +71,38 @@ const OrderSchema: Schema = new Schema(
     },
     paymentMethod: {
       type: String,
+      enum: ["cash_on_delivery", "paypal"],
       required: true,
-      default: 'cash_on_delivery',
+      default: "cash_on_delivery",
     },
-    itemsPrice: {
-      type: Number,
-      required: true,
-      default: 0,
+    paymentGateway: { type: String, enum: ["paypal"] },
+    paypalOrderId: { type: String, index: true, sparse: true, unique: true },
+    paymentTransactionId: { type: String, index: true, sparse: true },
+    paymentStatus: {
+      type: String,
+      enum: ["Created", "Pending", "Completed", "Failed", "Cancelled"],
     },
-    shippingPrice: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    taxPrice: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
+    itemsPrice: { type: Number, required: true, min: 0 },
+    shippingPrice: { type: Number, required: true, min: 0 },
+    taxPrice: { type: Number, required: true, min: 0 },
+    totalPrice: { type: Number, required: true, min: 0 },
     user: {
-      name: { type: String },
-      email: { type: String },
+      id: { type: String },
+      name: { type: String, required: true },
+      email: { type: String, required: true, index: true },
     },
-    isPaid: {
-      type: Boolean,
-      default: false,
-    },
-    paidAt: {
-      type: Date,
-    },
-    isDelivered: {
-      type: Boolean,
-      default: false,
-    },
-    deliveredAt: {
-      type: Date,
-    },
+    isPaid: { type: Boolean, default: false },
+    paidAt: { type: Date },
+    isDelivered: { type: Boolean, default: false },
+    deliveredAt: { type: Date },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending',
+      enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
+    stockRestored: { type: Boolean, default: false },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
 
-export default mongoose.model<IOrder>('Order', OrderSchema);
+export default mongoose.model<IOrder>("Order", OrderSchema);
