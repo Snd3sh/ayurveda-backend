@@ -339,3 +339,4 @@ class PaymentController {
 
 export { PAYPAL_NPR_TO_USD, restoreReservedStockOnce };
 export default new PaymentController();
+
