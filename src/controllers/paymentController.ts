@@ -35,7 +35,7 @@ async function getPayPalAccessToken(): Promise<string> {
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
     "base64",
   );
-  const response = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
+  const response: any = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
@@ -76,7 +76,7 @@ export async function createPayPalOrder(params: {
     process.env.PAYPAL_CANCEL_URL ||
     "http://localhost:3000/api/payments/paypal/cancel";
 
-  const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
+  const response: any = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -128,7 +128,7 @@ export async function createPayPalOrder(params: {
 async function capturePayPalOrder(paypalOrderId: string): Promise<any> {
   const accessToken = await getPayPalAccessToken();
 
-  const response = await fetch(
+  const response: any = await fetch(
     `${PAYPAL_BASE_URL}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`,
     {
       method: "POST",
